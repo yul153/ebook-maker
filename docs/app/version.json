@@ -1,12 +1,12 @@
 {
-    "version":  "2026.08.20-15",
-    "note":  "작업표시줄 고정 문제 해결 (앱 이름표) + 시작 메뉴 등록",
+    "version":  "2026.08.20-16",
+    "note":  "미리보기 서버를 내 PC에서만 열리게 제한 (사내망 노출 차단)",
     "files":  [
                   {
                       "path":  "ebook-gui.ps1",
                       "url":  "ebook-gui.ps1",
-                      "sha256":  "7f006c595c4ea0ccc719eda17eb99c5a58e0cd766f0b46c193a62d6852dd2720",
-                      "bytes":  26048
+                      "sha256":  "d862499f446ff0a06472a3620cb30c7d0c145ca092be8207df506791549d9cee",
+                      "bytes":  26375
                   },
                   {
                       "path":  "icon.ico",
@@ -41,8 +41,8 @@
                   {
                       "path":  "pdf2ebook.py",
                       "url":  "pdf2ebook.py",
-                      "sha256":  "385a339ed757da82911526251d58855579dd496dfc1779587b1196237af715fd",
-                      "bytes":  44713
+                      "sha256":  "fb3a0e770e3ac3a196e2e150832e88258e35c862d01c003a66b3ab03f47c0283",
+                      "bytes":  44730
                   },
                   {
                       "path":  "제목바꾸기.bat",

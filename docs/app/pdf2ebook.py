@@ -877,7 +877,7 @@ def build(args: argparse.Namespace) -> int:
 
     print()
     print(f"✓ 완료 → {out_dir}")
-    print(f"  로컬 확인:  python -m http.server 8000 --directory \"{out_dir}\"")
+    print(f"  로컬 확인:  python -m http.server 8000 --bind 127.0.0.1 --directory \"{out_dir}\"")
     print(f"              http://localhost:8000/")
     return 0
 

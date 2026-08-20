@@ -537,8 +537,13 @@ $btnView.Add_Click({
         return
     }
     # 이북은 웹 서버로 열어야 한다 (파일을 그냥 더블클릭하면 동작하지 않는다)
+    #
+    # --bind 127.0.0.1 을 반드시 붙일 것. 이게 없으면 파이썬이 모든 네트워크
+    # 카드에 열어 버려서, 같은 사무실 와이파이에 있는 사람이 IP만 알면
+    # 아직 공개하지 않은 원고를 그대로 들여다볼 수 있다.
     $script:srv = Start-Process -FilePath $script:py -WindowStyle Hidden -PassThru `
-        -ArgumentList @('-m', 'http.server', '8765', '--directory', "`"$($script:outDir)`"")
+        -ArgumentList @('-m', 'http.server', '8765', '--bind', '127.0.0.1',
+                        '--directory', "`"$($script:outDir)`"")
     Start-Sleep -Milliseconds 700
     Start-Process 'http://localhost:8765/'
     Say '미리 보기 창을 열었습니다.  이 창을 닫으면 미리 보기도 함께 꺼집니다.'
