@@ -1,4 +1,4 @@
-<#
+﻿<#
   이북 제조기 — 자동 업데이트
 
   실행할 때마다 웹에 올려 둔 version.json을 읽어, 바뀐 파일만 내려받아 덮어쓴다.
@@ -25,9 +25,38 @@ try {
         [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11
 } catch {}
 
+<#
+  웹에서 JSON을 받아 온다.
+
+  Invoke-RestMethod를 그냥 쓰면 안 된다. 서버가 Content-Type에 charset을 안 붙여
+  보내면 PowerShell 5.1이 본문을 Latin-1로 풀어 버려서, 한글이 들어간 값이 통째로
+  깨진다(실제로 파일 이름이 깨져 404가 났다). 바이트를 직접 받아 UTF-8로 푼다.
+#>
+function Get-WebJson([string]$uri, [int]$sec = 15) {
+    $r = Invoke-WebRequest -Uri $uri -TimeoutSec $sec -UseBasicParsing
+    $bytes = $r.RawContentStream.ToArray()
+    $text = [Text.Encoding]::UTF8.GetString($bytes).TrimStart([char]0xFEFF)
+    $text | ConvertFrom-Json
+}
+
+# 주소에 한글·괄호가 들어가도 404가 나지 않도록 칸별로 인코딩한다
+function Get-FileUri([string]$base, [string]$rel) {
+    $parts = $rel.Replace([char]92, [char]47).Split([char]47) |
+             ForEach-Object { [Uri]::EscapeDataString($_) }
+    return "$base/" + ($parts -join "/")
+}
+
 function Get-Json([string]$path) {
     if (-not (Test-Path -LiteralPath $path)) { return $null }
     try { Get-Content -LiteralPath $path -Raw -Encoding UTF8 | ConvertFrom-Json } catch { $null }
+}
+
+# JSON은 BOM 없이 써야 한다. BOM이 붙으면 Invoke-RestMethod가 이 파일을
+# 통째로 문자열로 읽어 버려(파싱 실패) 업데이트가 조용히 멎는다.
+function Save-Version($obj) {
+    $json = $obj | ConvertTo-Json -Depth 6
+    [IO.File]::WriteAllText((Join-Path $AppDir 'version.json'), $json,
+                            (New-Object Text.UTF8Encoding($false)))
 }
 
 function Get-Sha([string]$path) {
@@ -48,7 +77,7 @@ function Invoke-Update {
     # 캐시 무력화용 꼬리표. 이게 없으면 CDN이 옛 version.json을 몇 시간씩 물고 있다.
     $stamp = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
     try {
-        $remote = Invoke-RestMethod -Uri "$base/version.json?t=$stamp" -TimeoutSec 8 -UseBasicParsing
+        $remote = Get-WebJson "$base/version.json?t=$stamp" 8
     } catch {
         Say '인터넷에 연결되어 있지 않아 업데이트 확인을 건너뜁니다.'
         return $false
@@ -64,8 +93,7 @@ function Invoke-Update {
     }
     if ($todo.Count -eq 0) {
         # 내용은 같은데 버전 딱지만 바뀐 경우. 딱지만 갱신하고 끝낸다.
-        $remote | ConvertTo-Json -Depth 6 |
-            Set-Content -LiteralPath (Join-Path $AppDir 'version.json') -Encoding UTF8
+        Save-Version $remote
         return $false
     }
 
@@ -77,7 +105,7 @@ function Invoke-Update {
     New-Item -ItemType Directory -Path $tmp -Force | Out-Null
     try {
         foreach ($f in $todo) {
-            $url = "$base/" + ($f.url -replace '\\', '/')
+            $url = Get-FileUri $base $f.url
             $to = Join-Path $tmp $f.path
             New-Item -ItemType Directory -Path (Split-Path $to -Parent) -Force | Out-Null
             Invoke-WebRequest -Uri "$url`?t=$stamp" -OutFile $to -TimeoutSec 60 -UseBasicParsing
@@ -90,8 +118,7 @@ function Invoke-Update {
             New-Item -ItemType Directory -Path (Split-Path $to -Parent) -Force | Out-Null
             Copy-Item -LiteralPath (Join-Path $tmp $f.path) -Destination $to -Force
         }
-        $remote | ConvertTo-Json -Depth 6 |
-            Set-Content -LiteralPath (Join-Path $AppDir 'version.json') -Encoding UTF8
+        Save-Version $remote
         Say "$($remote.version) 버전으로 업데이트했습니다."
         return $true
     } catch {

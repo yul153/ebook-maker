@@ -1,4 +1,4 @@
-<#
+﻿<#
   이북 제조기 — 새 버전 내보내기 (개발용)
 
   프로그램 파일을 고친 뒤 이 스크립트 하나만 돌리면 배포가 끝난다.
@@ -48,9 +48,18 @@ Say "  설치명령 irm $site/install.ps1 | iex" 'Cyan'
 Say ''
 
 # --- ② 파일 목록과 해시 -----------------------------------------------------
-# .htaccess는 이름이 점으로 시작해 GitHub Pages가 내보내지 않는다. 저장소에는
-# htaccess.txt로 두고, 내려받는 쪽에서 .htaccess라는 이름으로 저장하게 한다.
-$rename = @{ 'viewer/htaccess.txt' = 'viewer/.htaccess' }
+# 웹에 올리는 이름(url)과 내 PC에 저장될 이름(path)이 다른 파일들.
+#
+#   · .htaccess  — 점으로 시작하는 파일은 GitHub Pages가 내보내지 않는다
+#   · 한글 이름  — 주소에 한글이 들어가면 인코딩이 한 군데만 어긋나도 404가 난다.
+#                  실제로 겪은 사고라, 웹에 올리는 이름은 전부 영문으로 통일했다.
+$rename = @{
+    'viewer/htaccess.txt'  = 'viewer/.htaccess'
+    'viewer/deploy-note.md' = 'viewer/배포요청서_템플릿.md'
+    'make-ebook.bat'       = '이북만들기.bat'
+    'retitle.bat'          = '제목바꾸기.bat'
+    'start.vbs'            = '이북만들기(버튼).vbs'
+}
 
 # 설치된 PC마다 값이 다른 파일들은 배포 목록에서 뺀다.
 # (source.json = 어디서 받을지, settings.json = 결과물 저장 위치)
@@ -80,13 +89,18 @@ if (Test-Path -LiteralPath $verFile) {
 }
 $version = "$today-$seq"
 
-[ordered]@{
+# JSON은 BOM 없이 써야 한다. BOM이 붙으면 Invoke-RestMethod가 이 파일을
+# 통째로 문자열로 읽어 버려(파싱 실패) 업데이트가 조용히 멎는다.
+$json = [ordered]@{
     version = $version
     note    = $Note
     files   = $files
-} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $verFile -Encoding UTF8
+} | ConvertTo-Json -Depth 6
+[IO.File]::WriteAllText($verFile, $json, (New-Object Text.UTF8Encoding($false)))
 
-$kb = [math]::Round((($files | Measure-Object bytes -Sum).Sum) / 1KB)
+# $files 안은 순서 있는 해시테이블이라 Measure-Object가 속성을 못 찾는다
+$sum = 0; foreach ($f in $files) { $sum += $f.bytes }
+$kb = [math]::Round($sum / 1KB)
 Say "  버전 $version · 파일 $($files.Count)개 · $kb KB" 'Green'
 
 # --- ③ 안내 페이지·설치 파일 찍어내기 ---------------------------------------
