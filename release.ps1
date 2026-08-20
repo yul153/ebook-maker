@@ -116,14 +116,17 @@ Say "  버전 $version · 파일 $($files.Count)개 · $kb KB" 'Green'
 # --- ③ 안내 페이지·설치 파일 찍어내기 ---------------------------------------
 # 원본은 templates/ 에 두고 docs/ 로 찍어낸다. 주소를 파일에 직접 박아 두면
 # 저장소 이름을 바꾸는 순간 어긋나므로, 낼 때마다 새로 채워 넣는다.
-foreach ($name in @('install.ps1', 'index.html')) {
+foreach ($name in @('install.ps1', 'index.html', 'setup.bat')) {
     $txt = Get-Content -LiteralPath (Join-Path $root "templates\$name") -Raw -Encoding UTF8
     $txt = $txt.Replace('__BASE_URL__', $base).
                 Replace('__SITE_URL__', $site).
                 Replace('__VERSION__',  $version).
                 Replace('__NOTE__',     $(if ($Note) { $Note } else { '손질' })).
                 Replace('__DATE__',     (Get-Date -Format 'yyyy년 M월 d일'))
-    Set-Content -LiteralPath (Join-Path $docs $name) -Value $txt -Encoding UTF8 -NoNewline
+    # .bat은 BOM이 붙으면 cmd가 첫 줄을 명령으로 잘못 읽고 오류를 낸다.
+    # .ps1은 반대로 BOM이 있어야 PowerShell 5.1이 한글을 제대로 읽는다.
+    $bom = New-Object Text.UTF8Encoding($name -notlike '*.bat')
+    [IO.File]::WriteAllText((Join-Path $docs $name), $txt, $bom)
 }
 
 # Jekyll이 손대지 않도록. 없으면 GitHub Pages가 파일을 임의로 걸러낸다.
