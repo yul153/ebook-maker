@@ -140,7 +140,12 @@ $msg = if ($Note) { "$version — $Note" } else { $version }
 & git -C $root commit -m $msg | Out-Null
 & git -C $root push -u origin HEAD
 if ($LASTEXITCODE -ne 0) {
-    Say '  [오류] push에 실패했습니다. GitHub 로그인 상태를 확인해 주세요.' 'Red'
+    # 명령줄 git은 GitHub 로그인 정보를 못 찾는 경우가 흔하다. 커밋은 이미
+    # 끝났으므로, 올리는 것만 GitHub Desktop 버튼에 맡기면 된다.
+    Say ''
+    Say '  커밋까지는 끝났지만 GitHub에 올리지 못했습니다(로그인 정보 없음).' 'Yellow'
+    Say '  GitHub Desktop을 열고 위쪽 «Push origin» 버튼을 눌러 주세요.' 'Yellow'
+    Say ''
     exit 1
 }
 
