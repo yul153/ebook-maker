@@ -28,7 +28,17 @@ function Say($m, $c = 'Gray') { Write-Host $m -ForegroundColor $c }
 # --- ① 설치 주소 알아내기 ---------------------------------------------------
 # git@github.com:이름/저장소.git  또는  https://github.com/이름/저장소.git
 # → https://이름.github.io/저장소
-$remote = (& git -C $root remote get-url origin 2>$null)
+# PowerShell 5.1은 네이티브 프로그램이 stderr에 뭔가 쓰면 그것을 오류 객체로
+# 감싸는데, ErrorActionPreference='Stop'과 만나면 아래 안내를 띄우기도 전에
+# 스크립트가 통째로 죽는다. 이 호출만 잠시 풀어 둔다.
+$remote = $null
+$old = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+try {
+    $out = & git -C $root remote get-url origin 2>&1
+    $remote = ($out | Where-Object { $_ -isnot [System.Management.Automation.ErrorRecord] }) -join ''
+} catch {}
+$ErrorActionPreference = $old
 if (-not $remote) {
     Say '  [오류] origin 원격 저장소가 없습니다. 먼저 GitHub 저장소를 연결하세요:' 'Red'
     Say '         git remote add origin https://github.com/<계정>/<저장소>.git' 'DarkGray'
