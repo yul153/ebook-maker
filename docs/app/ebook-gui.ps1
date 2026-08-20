@@ -194,53 +194,16 @@ $txtSlug.Size = New-Object System.Drawing.Size(596, 32)
 $form.Controls.Add($txtSlug)
 $null = New-Label '영문·숫자만.  인터넷 주소에 그대로 쓰입니다.  예) fruit-2608' 34 378 560 22 $fontHint $gray
 
-# ④ 리플렛 나누기
-$chkSplit = New-Object System.Windows.Forms.CheckBox
-$chkSplit.Text = '④ 리플렛 나누기'
-$chkSplit.Font = $fontStep
-$chkSplit.Location = New-Object System.Drawing.Point(32, 418)
-$chkSplit.Size = New-Object System.Drawing.Size(200, 26)
-$form.Controls.Add($chkSplit)
-
-# 칸 수는 "PDF 한 장이 몇 칸이냐 → 결과가 몇 면이냐"로 읽히게 적는다.
-# '2등분'만 써 두면 무엇을 등분한다는 뜻인지 알아보기 어렵다.
-$cboCols = New-Object System.Windows.Forms.ComboBox
-$cboCols.DropDownStyle = 'DropDownList'
-$cboCols.Location = New-Object System.Drawing.Point(240, 416)
-$cboCols.Size = New-Object System.Drawing.Size(388, 30)
-$null = $cboCols.Items.AddRange(@(
-    '한 장에 2칸  →  4면 리플렛',
-    '한 장에 3칸  →  6면 리플렛',
-    '한 장에 4칸  →  8면 리플렛'))
-$cboCols.SelectedIndex = 0
-$cboCols.Enabled = $false
-$form.Controls.Add($cboCols)
-
-$null = New-Label 'PDF 한 장에 여러 칸이 나란히 들어 있는 리플렛일 때 켜세요. 재단여백은 알아서 떼어냅니다.' 52 450 576 20 $fontHint $gray
-
-$lblOrder = New-Label '쪽 순서' 52 478 66 24 $fontHint $gray
-$txtOrder = New-Object System.Windows.Forms.TextBox
-$txtOrder.Location = New-Object System.Drawing.Point(122, 474)
-$txtOrder.Size = New-Object System.Drawing.Size(506, 30)
-$txtOrder.Enabled = $false
-$form.Controls.Add($txtOrder)
-$null = New-Label '비워 두면 자른 그대로.  왼쪽 칸부터 차례로, 그 칸이 몇 쪽인지 적으세요:  6,7,8,1,2,3,4,5' 122 508 506 20 $fontHint $gray
-
-$chkSplit.Add_CheckedChanged({
-    $cboCols.Enabled  = $chkSplit.Checked
-    $txtOrder.Enabled = $chkSplit.Checked
-})
-
-# ⑤ 이미지 형식
+# ④ 이미지 형식
 #
 # WebP는 용량이 확실히 작지만, 서버가 .webp를 모르는 확장자로 보면 이미지 요청을
 # 통째로 404로 막아 버린다(윈도우 IIS 기본 설정이 그렇다). 그러면 뷰어는 멀쩡히
 # 뜨는데 쪽 그림만 전부 엑스박스가 된다. 남의 서버에 올릴 이북은 PNG나 JPG.
-$null = New-Label '⑤ 이미지 형식' 32 546 200 26 $fontStep $null
+$null = New-Label '④ 이미지 형식' 32 418 200 26 $fontStep $null
 
 $cboFmt = New-Object System.Windows.Forms.ComboBox
 $cboFmt.DropDownStyle = 'DropDownList'
-$cboFmt.Location = New-Object System.Drawing.Point(240, 544)
+$cboFmt.Location = New-Object System.Drawing.Point(240, 416)
 $cboFmt.Size = New-Object System.Drawing.Size(388, 30)
 $null = $cboFmt.Items.AddRange(@(
     '자동  —  지면을 보고 PNG/JPG 중 고름 (권장)',
@@ -252,7 +215,7 @@ $form.Controls.Add($cboFmt)
 
 # 한 줄에 들어가는 길이로 자를 것. 폭을 넘기면 두 번째 줄이 잘려 안 보인다.
 # (맑은 고딕 9pt 기준 576px = 한글 약 40자)
-$null = New-Label '자동으로 두면 지면을 보고 알아서 고릅니다.  WebP는 내가 관리하는 서버일 때만.' 52 578 576 20 $fontHint $gray
+$null = New-Label '자동으로 두면 지면을 보고 알아서 고릅니다.  WebP는 내가 관리하는 서버일 때만.' 52 450 576 20 $fontHint $gray
 
 # 자세한 설명은 말풍선으로. 화면에 다 적으면 넘친다.
 $tipFmt = New-Object System.Windows.Forms.ToolTip
@@ -269,6 +232,42 @@ WebP  가장 작지만, 서버가 .webp를 모르면 쪽 그림이 전부 안 �
       내가 관리하는 서버가 아니면 쓰지 마세요.
 '@)
 
+# ⑤ 리플렛 나누기
+$chkSplit = New-Object System.Windows.Forms.CheckBox
+$chkSplit.Text = '⑤ 리플렛 나누기'
+$chkSplit.Font = $fontStep
+$chkSplit.Location = New-Object System.Drawing.Point(32, 488)
+$chkSplit.Size = New-Object System.Drawing.Size(200, 26)
+$form.Controls.Add($chkSplit)
+
+# 칸 수는 "PDF 한 장이 몇 칸이냐 → 결과가 몇 면이냐"로 읽히게 적는다.
+# '2등분'만 써 두면 무엇을 등분한다는 뜻인지 알아보기 어렵다.
+$cboCols = New-Object System.Windows.Forms.ComboBox
+$cboCols.DropDownStyle = 'DropDownList'
+$cboCols.Location = New-Object System.Drawing.Point(240, 486)
+$cboCols.Size = New-Object System.Drawing.Size(388, 30)
+$null = $cboCols.Items.AddRange(@(
+    '한 장에 2칸  →  4면 리플렛',
+    '한 장에 3칸  →  6면 리플렛',
+    '한 장에 4칸  →  8면 리플렛'))
+$cboCols.SelectedIndex = 0
+$cboCols.Enabled = $false
+$form.Controls.Add($cboCols)
+
+$null = New-Label 'PDF 한 장에 여러 칸이 나란히 들어 있는 리플렛일 때 켜세요. 재단여백은 알아서 떼어냅니다.' 52 520 576 20 $fontHint $gray
+
+$lblOrder = New-Label '쪽 순서' 52 548 66 24 $fontHint $gray
+$txtOrder = New-Object System.Windows.Forms.TextBox
+$txtOrder.Location = New-Object System.Drawing.Point(122, 544)
+$txtOrder.Size = New-Object System.Drawing.Size(506, 30)
+$txtOrder.Enabled = $false
+$form.Controls.Add($txtOrder)
+$null = New-Label '비워 두면 자른 그대로.  왼쪽 칸부터 차례로, 그 칸이 몇 쪽인지 적으세요:  6,7,8,1,2,3,4,5' 122 578 506 20 $fontHint $gray
+
+$chkSplit.Add_CheckedChanged({
+    $cboCols.Enabled  = $chkSplit.Checked
+    $txtOrder.Enabled = $chkSplit.Checked
+})
 # 실행 버튼
 $btnGo = New-Object System.Windows.Forms.Button
 $btnGo.Text = '이북 만들기'

@@ -1,12 +1,12 @@
 {
-    "version":  "2026.08.20-8",
-    "note":  "⑤ 이미지 형식 안내문이 잘리던 것 수정 + 말풍선 설명 추가",
+    "version":  "2026.08.20-9",
+    "note":  "이미지 형식을 ④로, 리플렛 나누기를 ⑤로 자리 바꿈",
     "files":  [
                   {
                       "path":  "ebook-gui.ps1",
                       "url":  "ebook-gui.ps1",
-                      "sha256":  "e1f0e6529f066a9995fcd9e99a87c5b5924b29b0de4e6d98640a4b97b9eeba7a",
-                      "bytes":  25049
+                      "sha256":  "415a78d07e78c544eb0e23fa2f84faa204fb9840e2914e205df7062b384af5b4",
+                      "bytes":  25048
                   },
                   {
                       "path":  "launcher.ps1",
