@@ -123,10 +123,13 @@ foreach ($name in @('install.ps1', 'index.html', 'setup.bat')) {
                 Replace('__VERSION__',  $version).
                 Replace('__NOTE__',     $(if ($Note) { $Note } else { '손질' })).
                 Replace('__DATE__',     (Get-Date -Format 'yyyy년 M월 d일'))
-    # .bat은 BOM이 붙으면 cmd가 첫 줄을 명령으로 잘못 읽고 오류를 낸다.
-    # .ps1은 반대로 BOM이 있어야 PowerShell 5.1이 한글을 제대로 읽는다.
-    $bom = New-Object Text.UTF8Encoding($name -notlike '*.bat')
-    [IO.File]::WriteAllText((Join-Path $docs $name), $txt, $bom)
+    # 파일마다 필요한 인코딩이 다르다.
+    #   .bat  CP949(ANSI). UTF-8로 쓰면 cmd가 파일 읽는 위치를 놓쳐 뒷부분이 엉킨다.
+    #   .ps1  UTF-8 BOM.  BOM이 없으면 PowerShell 5.1이 한글을 ANSI로 읽어 깨뜨린다.
+    #   .html UTF-8 BOM.  브라우저는 어느 쪽이든 상관없다.
+    $enc = if ($name -like '*.bat') { [Text.Encoding]::GetEncoding(949) }
+           else { New-Object Text.UTF8Encoding($true) }
+    [IO.File]::WriteAllText((Join-Path $docs $name), $txt, $enc)
 }
 
 # Jekyll이 손대지 않도록. 없으면 GitHub Pages가 파일을 임의로 걸러낸다.

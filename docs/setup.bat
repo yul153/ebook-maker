@@ -1,28 +1,45 @@
 @echo off
 rem ===========================================================
-rem  ì´ë¶ ì œì¡°ê¸° ì„¤ì¹˜
+rem  ÀÌºÏ Á¦Á¶±â ¼³Ä¡
 rem
-rem  ì´ íŒŒì¼ í•˜ë‚˜ë§Œ ìžˆìœ¼ë©´ ë©ë‹ˆë‹¤. ë”ë¸”í´ë¦­í•˜ë©´ ìµœì‹  ë²„ì „ì„
-rem  ë‚´ë ¤ë°›ì•„ ì„¤ì¹˜í•˜ê³ , ë°”íƒ•í™”ë©´ì— Â«ì´ë¶ ë§Œë“¤ê¸°Â» ì•„ì´ì½˜ì„
-rem  ë§Œë“¤ì–´ ì¤ë‹ˆë‹¤.
+rem  ÀÌ ÆÄÀÏ ÇÏ³ª¸¸ ÀÖÀ¸¸é µË´Ï´Ù. ´õºíÅ¬¸¯ÇÏ¸é ÃÖ½Å ¹öÀüÀ»
+rem  ³»·Á¹Þ¾Æ ¼³Ä¡ÇÏ°í, ¹ÙÅÁÈ­¸é¿¡ ¡ìÀÌºÏ ¸¸µé±â¡í ¾ÆÀÌÄÜÀ»
+rem  ¸¸µé¾î ÁÝ´Ï´Ù.
 rem
-rem  ì´í›„ë¡œëŠ” í”„ë¡œê·¸ëž¨ì´ ì¼œì§ˆ ë•Œë§ˆë‹¤ ì•Œì•„ì„œ ìµœì‹ ìœ¼ë¡œ ê°±ì‹ ë˜ë¯€ë¡œ
-rem  ì´ íŒŒì¼ì„ ë‹¤ì‹œ ë°›ìœ¼ì‹¤ í•„ìš”ê°€ ì—†ìŠµë‹ˆë‹¤.
+rem  ÀÌÈÄ·Î´Â ÇÁ·Î±×·¥ÀÌ ÄÑÁú ¶§¸¶´Ù ¾Ë¾Æ¼­ ÃÖ½ÅÀ¸·Î °»½ÅµÇ¹Ç·Î
+rem  ÀÌ ÆÄÀÏÀ» ´Ù½Ã ¹ÞÀ¸½Ç ÇÊ¿ä°¡ ¾ø½À´Ï´Ù.
+rem
+rem  ¡Ø ÀÌ ÆÄÀÏÀº CP949(ANSI)·Î ÀúÀåÇØ¾ß ÇÑ±ÛÀÌ ±úÁöÁö ¾Ê´Â´Ù.
+rem     UTF-8·Î ÀúÀåÇÏ°í chcp 65001À» ¾²¸é, cmd°¡ ÆÄÀÏÀ» ÀÐ´Â
+rem     À§Ä¡¸¦ ³õÃÄ µÞºÎºÐÀÌ ÅëÂ°·Î ¾ûÅ²´Ù. (½ÇÁ¦·Î °ÞÀ½)
 rem ===========================================================
-chcp 65001 >nul
-title ì´ë¶ ì œì¡°ê¸° ì„¤ì¹˜
+title ÀÌºÏ Á¦Á¶±â ¼³Ä¡
+
+set "PS1=%TEMP%\ebook-setup.ps1"
 
 echo.
-echo   ì´ë¶ ì œì¡°ê¸°ë¥¼ ì„¤ì¹˜í•©ë‹ˆë‹¤. ìž ì‹œë§Œ ê¸°ë‹¤ë ¤ ì£¼ì„¸ìš”...
+echo   ÀÌºÏ Á¦Á¶±â¸¦ ¼³Ä¡ÇÕ´Ï´Ù. Àá½Ã¸¸ ±â´Ù·Á ÁÖ¼¼¿ä...
 echo.
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ErrorActionPreference='Stop'; try { [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12 } catch {}; $f=Join-Path $env:TEMP 'ebook-setup.ps1'; Invoke-WebRequest 'https://yul153.github.io/ebook-maker/install.ps1' -OutFile $f -UseBasicParsing; & powershell -NoProfile -ExecutionPolicy Bypass -File $f"
+rem ³»·Á¹Þ±â¿Í ½ÇÇàÀ» µû·Î ³ª´«´Ù. ÇÑ ÁÙ¿¡ ¸ô¾Æ³ÖÀ¸¸é cmd¿Í PowerShellÀÇ
+rem µû¿ÈÇ¥ ±ÔÄ¢ÀÌ ºÎµúÃÄ º¯¼ö°¡ ±×´ë·Î ³Ñ¾î°¡ ¹ö¸°´Ù.
+powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest 'https://yul153.github.io/ebook-maker/install.ps1' -OutFile '%PS1%' -UseBasicParsing"
+if errorlevel 1 goto :failed
+if not exist "%PS1%" goto :failed
 
+powershell -NoProfile -ExecutionPolicy Bypass -File "%PS1%"
+if errorlevel 1 goto :failed
+
+del "%PS1%" >nul 2>&1
 echo.
-if errorlevel 1 (
-  echo   ì„¤ì¹˜ì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤. ì¸í„°ë„· ì—°ê²°ì„ í™•ì¸í•œ ë’¤ ë‹¤ì‹œ ì‹¤í–‰í•´ ì£¼ì„¸ìš”.
-) else (
-  echo   ëë‚¬ìŠµë‹ˆë‹¤. ë°”íƒ•í™”ë©´ì˜ Â«ì´ë¶ ë§Œë“¤ê¸°Â» ë¥¼ ì‹¤í–‰í•˜ì„¸ìš”.
-)
+echo   ³¡³µ½À´Ï´Ù. ¹ÙÅÁÈ­¸éÀÇ ¡ìÀÌºÏ ¸¸µé±â¡í ¸¦ ½ÇÇàÇÏ¼¼¿ä.
 echo.
 pause
+exit /b 0
+
+:failed
+echo.
+echo   ¼³Ä¡¿¡ ½ÇÆÐÇß½À´Ï´Ù. ÀÎÅÍ³Ý ¿¬°áÀ» È®ÀÎÇÑ µÚ ´Ù½Ã ½ÇÇàÇØ ÁÖ¼¼¿ä.
+echo.
+pause
+exit /b 1
