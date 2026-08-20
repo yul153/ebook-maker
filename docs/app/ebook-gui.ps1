@@ -9,6 +9,19 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
+# 앱 이름표. 창이 하나라도 만들어지기 전에 붙여야 한다.
+#
+# 이게 없으면 윈도우는 이 창을 그냥 "PowerShell"로 본다. 그래서 작업표시줄에
+# 고정하면 이북 제조기가 아니라 PowerShell이 고정되어 버렸다. 설치할 때
+# 바로가기에도 같은 이름표를 심어 두므로, 이제 둘이 한 프로그램으로 묶인다.
+try {
+    Add-Type -Namespace Shell -Name Aumid -MemberDefinition @'
+[DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+public static extern int SetCurrentProcessExplicitAppUserModelID(string appId);
+'@
+    [void][Shell.Aumid]::SetCurrentProcessExplicitAppUserModelID('EbookMaker')
+} catch { }
+
 $root     = Split-Path -Parent $MyInvocation.MyCommand.Path
 $pyScript = Join-Path $root 'pdf2ebook.py'
 $outRoot  = $null   # 아래 Get-OutRoot 로 정한다

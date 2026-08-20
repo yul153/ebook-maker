@@ -126,27 +126,159 @@ $noBom = New-Object Text.UTF8Encoding($false)
 [IO.File]::WriteAllText((Join-Path $Dir 'version.json'),
                         ($manifest | ConvertTo-Json -Depth 6), $noBom)
 
-# --- 바탕화면 바로가기 ---
-# wscript로 vbs를 띄우는 이유는 검은 명령창을 보이지 않게 하기 위해서다.
+# --- 바로가기 ---
+#
+# 작업표시줄에 고정했을 때 PowerShell이 고정되어 버리는 문제가 있었다.
+# 이 프로그램은 powershell.exe가 화면을 그리므로, 윈도우 입장에서는
+# "PowerShell이 떠 있다"고 보이기 때문이다.
+#
+# 해결책은 앱 이름표(AppUserModelID)다. 바로가기와 실행 중인 창에 같은
+# 이름표를 붙여 두면, 윈도우가 둘을 한 프로그램으로 묶어 준다.
+# 이름표를 알아보려면 시작 메뉴에도 같은 바로가기가 있어야 해서 둘 다 만든다.
+$AppId = 'EbookMaker'
+
+$cs = @'
+using System;
+using System.Runtime.InteropServices;
+
+public static class LnkAppId
+{
+    // PROPVARIANT는 64비트에서 24바이트다. 넉넉히 잡아야 호출된 쪽이
+    // 우리 스택 밖으로 쓰는 사고가 없다.
+    [StructLayout(LayoutKind.Explicit, Size = 24)]
+    private struct PropVariant
+    {
+        [FieldOffset(0)] public ushort vt;
+        [FieldOffset(8)] public IntPtr ptr;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 4)]
+    private struct PropertyKey
+    {
+        public Guid fmtid; public uint pid;
+        public PropertyKey(Guid g, uint p) { fmtid = g; pid = p; }
+    }
+
+    [ComImport, Guid("00021401-0000-0000-C000-000000000046")]
+    private class CShellLink { }
+
+    [ComImport, Guid("886d8eeb-8cf2-4446-8d02-cdba1dbdcf99"),
+     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IPropertyStore
+    {
+        int GetCount(out uint c);
+        int GetAt(uint i, out PropertyKey k);
+        int GetValue(ref PropertyKey k, out PropVariant v);
+        int SetValue(ref PropertyKey k, ref PropVariant v);
+        int Commit();
+    }
+
+    [ComImport, Guid("0000010b-0000-0000-C000-000000000046"),
+     InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IPersistFile
+    {
+        void GetClassID(out Guid c);
+        [PreserveSig] int IsDirty();
+        void Load([MarshalAs(UnmanagedType.LPWStr)] string f, uint mode);
+        void Save([MarshalAs(UnmanagedType.LPWStr)] string f,
+                  [MarshalAs(UnmanagedType.Bool)] bool remember);
+        void SaveCompleted([MarshalAs(UnmanagedType.LPWStr)] string f);
+        void GetCurFile([MarshalAs(UnmanagedType.LPWStr)] out string f);
+    }
+
+    [DllImport("ole32.dll")]
+    private static extern int PropVariantClear(ref PropVariant pv);
+    // InitPropVariantFromString은 헤더 안의 인라인 함수라 DLL에서 못 찾는다.
+    // VT_LPWSTR(31)로 직접 채워 넣는다. 문자열은 COM 힙에 두어야
+    // PropVariantClear가 제대로 해제한다.
+    private const ushort VT_LPWSTR = 31;
+    private static PropVariant MakeString(string s)
+    {
+        PropVariant pv = new PropVariant();
+        pv.vt = VT_LPWSTR;
+        pv.ptr = Marshal.StringToCoTaskMemUni(s);
+        return pv;
+    }
+    [DllImport("propsys.dll")]
+    private static extern int PropVariantToStringAlloc(ref PropVariant pv, out IntPtr ppsz);
+
+    // PKEY_AppUserModel_ID
+    private static PropertyKey Key()
+    {
+        return new PropertyKey(new Guid("9F4C2855-9F79-4B39-A8D0-E1D42DE1D5F3"), 5);
+    }
+
+    public static void Set(string lnk, string appId)
+    {
+        IPersistFile file = (IPersistFile)new CShellLink();
+        file.Load(lnk, 2);                       // STGM_READWRITE
+        IPropertyStore store = (IPropertyStore)file;
+        PropVariant pv = MakeString(appId);
+        PropertyKey k = Key();
+        try
+        {
+            Marshal.ThrowExceptionForHR(store.SetValue(ref k, ref pv));
+            Marshal.ThrowExceptionForHR(store.Commit());
+        }
+        finally { PropVariantClear(ref pv); }
+        file.Save(lnk, true);
+    }
+
+    public static string Get(string lnk)
+    {
+        IPersistFile file = (IPersistFile)new CShellLink();
+        file.Load(lnk, 0);                       // STGM_READ
+        IPropertyStore store = (IPropertyStore)file;
+        PropVariant pv;
+        PropertyKey k = Key();
+        if (store.GetValue(ref k, out pv) != 0) return null;
+        try
+        {
+            if (pv.vt == 0) return null;         // VT_EMPTY
+            IntPtr p;
+            if (PropVariantToStringAlloc(ref pv, out p) != 0) return null;
+            string s = Marshal.PtrToStringUni(p);
+            Marshal.FreeCoTaskMem(p);
+            return s;
+        }
+        finally { PropVariantClear(ref pv); }
+    }
+}
+'@
+Add-Type -TypeDefinition $cs -Language CSharp
+
+function New-AppShortcut([string]$path, [string]$dir, [string]$appId) {
+    $sh = New-Object -ComObject WScript.Shell
+    $sc = $sh.CreateShortcut($path)
+    # wscript로 vbs를 띄우는 이유는 검은 명령창을 보이지 않게 하기 위해서다.
+    $sc.TargetPath = "$env:SystemRoot\System32\wscript.exe"
+    $sc.Arguments = '"' + (Join-Path $dir '이북만들기(버튼).vbs') + '"'
+    $sc.WorkingDirectory = $dir
+    # 전용 아이콘. 아직 안 받아진 상황(옛 설치본 갱신 등)에서는
+    # 윈도우 기본 아이콘으로 물러선다 — 빈 아이콘보다는 낫다.
+    $ico = Join-Path $dir 'icon.ico'
+    $sc.IconLocation = if (Test-Path -LiteralPath $ico) { $ico }
+                       else { "$env:SystemRoot\System32\imageres.dll,68" }
+    $sc.Description = 'PDF를 웹 이북으로 만듭니다'
+    $sc.Save()
+    # 이름표는 바로가기를 저장한 뒤에 심어야 한다. 먼저 심으면 Save가 덮어쓴다.
+    try { [LnkAppId]::Set($path, $appId) } catch {}
+}
+
 if (-not $NoShortcut) {
-    $lnk = Join-Path ([Environment]::GetFolderPath('Desktop')) '이북 만들기.lnk'
     try {
-        $sh = New-Object -ComObject WScript.Shell
-        $sc = $sh.CreateShortcut($lnk)
-        $sc.TargetPath = "$env:SystemRoot\System32\wscript.exe"
-        $sc.Arguments = '"' + (Join-Path $Dir '이북만들기(버튼).vbs') + '"'
-        $sc.WorkingDirectory = $Dir
-        # 전용 아이콘. 아직 안 받아진 상황(옛 설치본 갱신 등)에서는
-        # 윈도우 기본 아이콘으로 물러선다 — 빈 아이콘보다는 낫다.
-        $ico = Join-Path $Dir 'icon.ico'
-        $sc.IconLocation = if (Test-Path -LiteralPath $ico) { $ico }
-                           else { "$env:SystemRoot\System32\imageres.dll,68" }
-        $sc.Description = 'PDF를 웹 이북으로 만듭니다'
-        $sc.Save()
+        $desktop = Join-Path ([Environment]::GetFolderPath('Desktop')) '이북 만들기.lnk'
+        New-AppShortcut $desktop $Dir $AppId
         Say '  ✓ 바탕화면에 «이북 만들기» 바로가기를 만들었습니다' 'Green'
     } catch {
         Say "  ! 바로가기를 만들지 못했습니다. $Dir 안의 «이북만들기(버튼).vbs»를 직접 실행하세요." 'Yellow'
     }
+    try {
+        $startDir = Join-Path ([Environment]::GetFolderPath('Programs')) '이북 제조기'
+        New-Item -ItemType Directory -Path $startDir -Force | Out-Null
+        New-AppShortcut (Join-Path $startDir '이북 만들기.lnk') $Dir $AppId
+        Say '  ✓ 시작 메뉴에 등록했습니다 («이북» 으로 검색됩니다)' 'Green'
+    } catch {}
 }
 
 # 다음 설치 때 같은 자리로 오도록 경로를 적어 둔다

@@ -1,12 +1,12 @@
 {
-    "version":  "2026.08.20-14",
-    "note":  "창·작업표시줄 아이콘 적용",
+    "version":  "2026.08.20-15",
+    "note":  "작업표시줄 고정 문제 해결 (앱 이름표) + 시작 메뉴 등록",
     "files":  [
                   {
                       "path":  "ebook-gui.ps1",
                       "url":  "ebook-gui.ps1",
-                      "sha256":  "b02f9c17b75e125eaa543e87c78b9b8cf1a8c61b6af391361063e31a2200b224",
-                      "bytes":  25363
+                      "sha256":  "7f006c595c4ea0ccc719eda17eb99c5a58e0cd766f0b46c193a62d6852dd2720",
+                      "bytes":  26048
                   },
                   {
                       "path":  "icon.ico",
