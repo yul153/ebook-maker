@@ -1,12 +1,18 @@
 {
-    "version":  "2026.08.20-12",
-    "note":  "설치.bat 추가 (사내 드라이브 배포용)",
+    "version":  "2026.08.20-13",
+    "note":  "전용 아이콘 추가",
     "files":  [
                   {
                       "path":  "ebook-gui.ps1",
                       "url":  "ebook-gui.ps1",
                       "sha256":  "415a78d07e78c544eb0e23fa2f84faa204fb9840e2914e205df7062b384af5b4",
                       "bytes":  25048
+                  },
+                  {
+                      "path":  "icon.ico",
+                      "url":  "icon.ico",
+                      "sha256":  "3d7adfdcc803366d7371629870f2a17f5f04c38bcbf3b42202fbe10872606690",
+                      "bytes":  19401
                   },
                   {
                       "path":  "launcher.ps1",

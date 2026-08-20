@@ -136,7 +136,11 @@ if (-not $NoShortcut) {
         $sc.TargetPath = "$env:SystemRoot\System32\wscript.exe"
         $sc.Arguments = '"' + (Join-Path $Dir '이북만들기(버튼).vbs') + '"'
         $sc.WorkingDirectory = $Dir
-        $sc.IconLocation = "$env:SystemRoot\System32\imageres.dll,68"
+        # 전용 아이콘. 아직 안 받아진 상황(옛 설치본 갱신 등)에서는
+        # 윈도우 기본 아이콘으로 물러선다 — 빈 아이콘보다는 낫다.
+        $ico = Join-Path $Dir 'icon.ico'
+        $sc.IconLocation = if (Test-Path -LiteralPath $ico) { $ico }
+                           else { "$env:SystemRoot\System32\imageres.dll,68" }
         $sc.Description = 'PDF를 웹 이북으로 만듭니다'
         $sc.Save()
         Say '  ✓ 바탕화면에 «이북 만들기» 바로가기를 만들었습니다' 'Green'
