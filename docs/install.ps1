@@ -8,7 +8,7 @@
 #>
 param(
     # release.ps1이 push할 때 이 줄을 실제 주소로 채워 넣는다.
-    [string]$Base = '__BASE_URL__',
+    [string]$Base = 'https://yul153.github.io/ebook-maker/app',
     [string]$Dir  = '',     # 비워 두면 아래에서 정한다
     [switch]$NoShortcut     # 시험 설치할 때 바탕화면을 어지르지 않으려고
 )

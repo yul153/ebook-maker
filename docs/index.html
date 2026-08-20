@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="utf-8">
@@ -79,7 +79,7 @@
    (관리자 권한은 필요 없습니다.)</p>
 
 <div class="cmd">
-  <code id="cmd">$f="$env:TEMP\ebook-setup.ps1"; iwr __SITE_URL__/install.ps1 -OutFile $f; powershell -ExecutionPolicy Bypass -File $f</code>
+  <code id="cmd">$f="$env:TEMP\ebook-setup.ps1"; iwr https://yul153.github.io/ebook-maker/install.ps1 -OutFile $f; powershell -ExecutionPolicy Bypass -File $f</code>
   <button onclick="copyCmd(this)">복사</button>
 </div>
 <p class="note">30초쯤 걸립니다. 끝나면 바탕화면에 <b>«이북 만들기»</b> 바로가기가 생깁니다.<br>
@@ -128,7 +128,7 @@
 </ul>
 
 <footer>
-  <span class="ver">버전 __VERSION__</span> · __DATE__ · __NOTE__
+  <span class="ver">버전 2026.08.20-7</span> · 2026년 8월 20일 · 첫 배포
 </footer>
 
 </div>
