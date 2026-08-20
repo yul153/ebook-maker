@@ -83,9 +83,20 @@ push 후 1~2분이면 GitHub Pages에 반영되고, 그때부터 사용자가 �
 
 | 무엇 | 어디 |
 |---|---|
-| 프로그램 | `%LOCALAPPDATA%\이북제조기` |
-| 결과물 | `내 문서\이북출력` |
+| 프로그램 | 전에 깐 자리가 있으면 그 자리, 없으면 `%LOCALAPPDATA%\이북제조기` |
+| 결과물 | 프로그램 폴더 옆에 `ebook-out`이 있으면 그 폴더, 없으면 `내 문서\이북출력` |
 | 바로가기 | 바탕화면 «이북 만들기» |
+
+설치 위치는 `-Dir`로 정합니다. 이 PC는 작업 폴더 안에서 쓰던 그대로 두기로 했습니다.
+
+```powershell
+$f="$env:TEMP\ebook-setup.ps1"
+iwr <사이트주소>/install.ps1 -OutFile $f
+powershell -ExecutionPolicy Bypass -File $f -Dir "H:\다른 컴퓨터\내 컴퓨터6\clade\e-book\ebook-builder"
+```
+
+한 번 이렇게 깔아 두면 `%APPDATA%\ebook-maker\install-path.txt`에 경로가 적혀,
+다음부터는 `-Dir` 없이 설치해도 같은 자리로 갑니다.
 
 결과물 위치를 바꾸려면 설치 폴더에 `settings.json`을 만들고 이렇게 적습니다.
 

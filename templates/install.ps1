@@ -9,7 +9,7 @@
 param(
     # release.ps1이 push할 때 이 줄을 실제 주소로 채워 넣는다.
     [string]$Base = '__BASE_URL__',
-    [string]$Dir  = (Join-Path $env:LOCALAPPDATA '이북제조기'),
+    [string]$Dir  = '',     # 비워 두면 아래에서 정한다
     [switch]$NoShortcut     # 시험 설치할 때 바탕화면을 어지르지 않으려고
 )
 
@@ -44,13 +44,40 @@ function Get-FileUri([string]$base, [string]$rel) {
 }
 
 
+
+# 어디에 깔았는지 적어 두는 쪽지. 다음에 다시 설치해도 같은 자리로 가게 한다.
+# (프로그램 본체가 아니라 경로 한 줄만 들어 있는 파일이다)
+$markDir = Join-Path $env:APPDATA 'ebook-maker'
+$mark = Join-Path $markDir 'install-path.txt'
+
+<#
+  설치할 자리를 정한다.
+
+    ① -Dir 로 직접 지정했으면 그 자리
+    ② 전에 깔아 둔 자리가 있으면 같은 자리 (덮어써서 최신으로 만든다)
+    ③ 둘 다 아니면 일반적인 프로그램 설치 위치
+
+  ②가 중요한 이유: 작업 폴더 안에 프로그램을 두고 쓰는 경우, 결과물도 그 옆
+  ebook-out에 쌓여 있다. 다시 설치했다고 엉뚱한 데로 옮겨 가면 안 된다.
+#>
+if (-not $Dir) {
+    if (Test-Path -LiteralPath $mark) {
+        $prev = (Get-Content -LiteralPath $mark -Raw -Encoding UTF8).Trim()
+        if ($prev -and (Test-Path -LiteralPath (Split-Path $prev -Parent))) { $Dir = $prev }
+    }
+}
+if (-not $Dir) { $Dir = Join-Path $env:LOCALAPPDATA '이북제조기' }
+
 Say ''
 Say '  ══════════════════════════════════════════' 'DarkCyan'
 Say '    이북 제조기 설치' 'Cyan'
 Say '  ══════════════════════════════════════════' 'DarkCyan'
 Say ''
 
-if ($Base -like '*__BASE_URL__*') {
+# 자리표시자를 그대로 두고 배포된 파일인지 본다.
+# 여기서 자리표시자 글자를 그대로 적어 비교하면 안 된다 — release.ps1이 이 파일
+# 안의 그 글자를 전부 실제 주소로 바꿔 버려서, 조건이 늘 참이 되어 버린다.
+if ($Base -notmatch '^https?://') {
     Say '  [오류] 설치 주소가 채워지지 않은 파일입니다.' 'Red'
     Say '         저장소에서 release.ps1을 한 번 돌린 뒤 다시 시도하세요.' 'Red'
     exit 1
@@ -118,7 +145,14 @@ if (-not $NoShortcut) {
     }
 }
 
-$outRoot = Join-Path ([Environment]::GetFolderPath('MyDocuments')) '이북출력'
+# 다음 설치 때 같은 자리로 오도록 경로를 적어 둔다
+New-Item -ItemType Directory -Path $markDir -Force | Out-Null
+[IO.File]::WriteAllText($mark, $Dir, (New-Object Text.UTF8Encoding($false)))
+
+# 결과물이 쌓일 자리. 프로그램 폴더 옆에 ebook-out이 이미 있으면 하던 대로 그 폴더를 쓴다.
+$legacy = Join-Path (Split-Path $Dir -Parent) 'ebook-out'
+$outRoot = if (Test-Path -LiteralPath $legacy) { $legacy }
+           else { Join-Path ([Environment]::GetFolderPath('MyDocuments')) '이북출력' }
 New-Item -ItemType Directory -Path $outRoot -Force | Out-Null
 
 Say ''

@@ -82,7 +82,9 @@
   <code id="cmd">$f="$env:TEMP\ebook-setup.ps1"; iwr __SITE_URL__/install.ps1 -OutFile $f; powershell -ExecutionPolicy Bypass -File $f</code>
   <button onclick="copyCmd(this)">복사</button>
 </div>
-<p class="note">30초쯤 걸립니다. 끝나면 바탕화면에 <b>«이북 만들기»</b> 바로가기가 생깁니다.</p>
+<p class="note">30초쯤 걸립니다. 끝나면 바탕화면에 <b>«이북 만들기»</b> 바로가기가 생깁니다.<br>
+   다른 폴더에 깔고 싶으면 명령 맨 뒤에 <code>-Dir "경로"</code> 를 붙이세요.
+   한 번 정해 두면 다음부터는 같은 자리로 갑니다.</p>
 
 <h2>한 번만 설치하면 됩니다</h2>
 <div class="card">
@@ -102,7 +104,8 @@
   <li><b>이북 만들기</b> 버튼을 누릅니다. 47쪽 사보 기준 1분 남짓 걸립니다.</li>
   <li>끝나면 <b>미리 보기</b>로 확인하고, 결과 폴더를 서버에 올리거나 배포용 ZIP을 그대로 전달합니다.</li>
 </ol>
-<p class="note">결과물은 <code>내 문서\이북출력</code> 에 쌓입니다.</p>
+<p class="note">결과물은 <code>내 문서\이북출력</code> 에 쌓입니다.
+   (프로그램 폴더 옆에 <code>ebook-out</code>이 이미 있으면 그 폴더를 그대로 씁니다.)</p>
 
 <h2>이미지 형식</h2>
 <p>기본값 <b>자동</b>으로 두시면 지면을 몇 장 실제로 구워 보고 알아서 고릅니다.</p>
