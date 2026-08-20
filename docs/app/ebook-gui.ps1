@@ -250,7 +250,24 @@ $null = $cboFmt.Items.AddRange(@(
 $cboFmt.SelectedIndex = 0
 $form.Controls.Add($cboFmt)
 
-$null = New-Label '자동으로 두면 알아서 고릅니다.  WebP는 내가 관리하는 서버일 때만 — 남의 서버는 그림이 안 뜰 수 있습니다.' 52 578 576 20 $fontHint $gray
+# 한 줄에 들어가는 길이로 자를 것. 폭을 넘기면 두 번째 줄이 잘려 안 보인다.
+# (맑은 고딕 9pt 기준 576px = 한글 약 40자)
+$null = New-Label '자동으로 두면 지면을 보고 알아서 고릅니다.  WebP는 내가 관리하는 서버일 때만.' 52 578 576 20 $fontHint $gray
+
+# 자세한 설명은 말풍선으로. 화면에 다 적으면 넘친다.
+$tipFmt = New-Object System.Windows.Forms.ToolTip
+$tipFmt.InitialDelay = 300
+$tipFmt.AutoPopDelay = 30000
+$tipFmt.SetToolTip($cboFmt, @'
+자동  지면을 몇 장 실제로 구워 보고 PNG와 JPG 중 나은 쪽을 고릅니다.
+
+PNG   무손실이라 글자가 가장 선명합니다. 글자·도형 위주의 회보라면
+      JPG보다 선명하면서 용량도 절반입니다.
+JPG   사진이 많은 사보에서 가장 균형이 좋습니다.
+WebP  가장 작지만, 서버가 .webp를 모르면 쪽 그림이 전부 안 뜹니다.
+      (윈도우 IIS 서버 기본 설정이 그렇습니다)
+      내가 관리하는 서버가 아니면 쓰지 마세요.
+'@)
 
 # 실행 버튼
 $btnGo = New-Object System.Windows.Forms.Button

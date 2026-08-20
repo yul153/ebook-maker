@@ -1,12 +1,12 @@
 {
-    "version":  "2026.08.20-7",
-    "note":  "첫 배포",
+    "version":  "2026.08.20-8",
+    "note":  "⑤ 이미지 형식 안내문이 잘리던 것 수정 + 말풍선 설명 추가",
     "files":  [
                   {
                       "path":  "ebook-gui.ps1",
                       "url":  "ebook-gui.ps1",
-                      "sha256":  "61581088d1a71b5ce19d38fa53ad5e5565ab88f4657783741bffe9298783c292",
-                      "bytes":  24184
+                      "sha256":  "e1f0e6529f066a9995fcd9e99a87c5b5924b29b0de4e6d98640a4b97b9eeba7a",
+                      "bytes":  25049
                   },
                   {
                       "path":  "launcher.ps1",
