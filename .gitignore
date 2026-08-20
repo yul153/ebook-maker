@@ -1,0 +1,6 @@
+# 설치된 PC마다 값이 다른 파일들
+docs/app/source.json
+docs/app/settings.json
+docs/app/update.log
+__pycache__/
+*.pyc

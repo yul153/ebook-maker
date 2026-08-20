@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>이북 제조기</title>
+<meta name="description" content="PDF를 웹에서 넘겨 보는 이북으로 만듭니다. 설치하면 이후로는 알아서 최신 버전이 됩니다.">
+<style>
+  :root{
+    --bg:#ffffff; --fg:#1a1d21; --dim:#6b7280; --line:#e5e7eb;
+    --card:#f7f8fa; --accent:#2f6fe4; --code-bg:#12151a; --code-fg:#e6edf3;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#15171b; --fg:#e8eaed; --dim:#9aa1ab; --line:#2b2f36;
+      --card:#1c1f25; --accent:#6ea8fe; --code-bg:#0d1117; --code-fg:#e6edf3;
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--fg);
+    font-family:'Pretendard','맑은 고딕','Malgun Gothic',system-ui,-apple-system,sans-serif;
+    line-height:1.7; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:56px 24px 96px}
+  header{border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:40px}
+  h1{font-size:31px; margin:0 0 10px; letter-spacing:-.02em}
+  .lead{color:var(--dim); margin:0; font-size:16px}
+  h2{font-size:19px; margin:44px 0 14px; letter-spacing:-.01em}
+  p{margin:0 0 14px}
+  code{font-family:ui-monospace,'Cascadia Mono',Consolas,monospace; font-size:.92em}
+
+  .cmd{
+    background:var(--code-bg); color:var(--code-fg); border-radius:10px;
+    padding:16px 18px; display:flex; gap:14px; align-items:center;
+    overflow-x:auto; margin:0 0 10px;
+  }
+  .cmd code{flex:1; white-space:nowrap; font-size:14px}
+  .cmd button{
+    flex:none; border:0; border-radius:7px; padding:8px 14px; cursor:pointer;
+    background:var(--accent); color:#fff; font:inherit; font-size:13px; font-weight:600;
+  }
+  .cmd button:active{transform:translateY(1px)}
+  .note{color:var(--dim); font-size:14px; margin:0 0 8px}
+
+  ol,ul{margin:0 0 14px; padding-left:22px}
+  li{margin:6px 0}
+  .steps{counter-reset:s; list-style:none; padding:0}
+  .steps li{
+    counter-increment:s; position:relative; padding-left:38px; margin:14px 0;
+  }
+  .steps li::before{
+    content:counter(s); position:absolute; left:0; top:2px;
+    width:25px; height:25px; border-radius:50%; background:var(--card);
+    border:1px solid var(--line); color:var(--dim);
+    font-size:13px; font-weight:700; display:grid; place-items:center;
+  }
+  .card{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px; margin:0 0 16px}
+  .card h3{margin:0 0 6px; font-size:15px}
+  .card p{margin:0; color:var(--dim); font-size:14px}
+  table{width:100%; border-collapse:collapse; font-size:14px; margin:0 0 16px; display:block; overflow-x:auto}
+  th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line); white-space:nowrap}
+  th{color:var(--dim); font-weight:600}
+  footer{margin-top:56px; padding-top:22px; border-top:1px solid var(--line); color:var(--dim); font-size:13px}
+  .ver{display:inline-block; padding:3px 9px; border-radius:20px; background:var(--card);
+       border:1px solid var(--line); font-size:12.5px; color:var(--dim)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>이북 제조기</h1>
+  <p class="lead">PDF를 웹에서 넘겨 보는 이북으로 만듭니다. 결과 폴더를 서버에 올리기만 하면 끝입니다.</p>
+</header>
+
+<h2>설치</h2>
+<p class="note">시작 버튼을 누르고 <b>PowerShell</b>을 열어, 아래 한 줄을 붙여 넣고 엔터를 누르세요.</p>
+
+<div class="cmd">
+  <code id="cmd">irm __SITE_URL__/install.ps1 | iex</code>
+  <button onclick="copyCmd(this)">복사</button>
+</div>
+<p class="note">30초쯤 걸립니다. 끝나면 바탕화면에 <b>«이북 만들기»</b> 바로가기가 생깁니다.</p>
+
+<h2>한 번만 설치하면 됩니다</h2>
+<div class="card">
+  <h3>업데이트는 알아서 됩니다</h3>
+  <p>프로그램을 켤 때마다 새 버전이 있는지 확인하고, 있으면 바뀐 파일만 조용히 받아옵니다.
+     파일을 다시 받거나 옮기실 일이 없습니다. 인터넷이 안 되는 곳에서도 그냥 지금 버전으로 실행됩니다.</p>
+</div>
+<div class="card">
+  <h3>파이썬은 알아서 깔립니다</h3>
+  <p>변환에 파이썬이 필요한데, 없으면 프로그램이 물어보고 대신 설치해 줍니다. 최초 1회만 몇 분 걸립니다.</p>
+</div>
+
+<h2>쓰는 법</h2>
+<ol class="steps">
+  <li>바탕화면의 <b>«이북 만들기»</b>를 실행합니다.</li>
+  <li>PDF를 창 위로 끌어다 놓고, 이북 제목과 폴더 이름을 적습니다.</li>
+  <li><b>이북 만들기</b> 버튼을 누릅니다. 47쪽 사보 기준 1분 남짓 걸립니다.</li>
+  <li>끝나면 <b>미리 보기</b>로 확인하고, 결과 폴더를 서버에 올리거나 배포용 ZIP을 그대로 전달합니다.</li>
+</ol>
+<p class="note">결과물은 <code>내 문서\이북출력</code> 에 쌓입니다.</p>
+
+<h2>이미지 형식</h2>
+<p>기본값 <b>자동</b>으로 두시면 지면을 몇 장 실제로 구워 보고 알아서 고릅니다.</p>
+<table>
+  <tr><th>형식</th><th>성격</th></tr>
+  <tr><td>PNG</td><td>무손실. 글자·도형 위주 회보에서는 더 선명하면서 용량도 더 작습니다</td></tr>
+  <tr><td>JPG</td><td>사진이 많은 사보에서 가장 균형이 좋습니다</td></tr>
+  <tr><td>WebP</td><td>가장 작지만 <b>서버가 .webp를 모르면 그림이 전부 안 뜹니다.</b> 내가 관리하는 서버일 때만</td></tr>
+</table>
+
+<h2>잘 안 될 때</h2>
+<ul>
+  <li><b>«이 시스템에서 스크립트를 실행할 수 없습니다»</b> — PowerShell에
+      <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code> 를 한 번 실행한 뒤 다시 설치하세요.</li>
+  <li><b>바로가기를 눌러도 창이 안 뜸</b> — 처음 실행은 업데이트 확인 때문에 몇 초 걸립니다.
+      그래도 안 뜨면 <code>%LOCALAPPDATA%\이북제조기\update.log</code> 를 확인해 주세요.</li>
+  <li><b>서버에 올렸는데 그림만 엑스박스</b> — 이북 폴더에 함께 들어 있는
+      <code>web.config</code>(윈도우 서버) 또는 <code>.htaccess</code>(아파치)를 같이 올렸는지 확인하세요.</li>
+</ul>
+
+<footer>
+  <span class="ver">버전 __VERSION__</span> · __DATE__ · __NOTE__
+</footer>
+
+</div>
+<script>
+function copyCmd(btn){
+  var t = document.getElementById('cmd').textContent;
+  navigator.clipboard.writeText(t).then(function(){
+    var old = btn.textContent;
+    btn.textContent = '복사됨';
+    setTimeout(function(){ btn.textContent = old; }, 1400);
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+# ============================================================================
+#  웹 이북 서버 설정 (Apache)
+#
+#  이 파일은 이북 폴더 안에 함께 올리기만 하면 됩니다. 서버 전체 설정을 건드릴
+#  권한이 없는 일반 웹호스팅에서도 동작합니다.
+#
+#  모든 지시어를 <IfModule>로 감쌌기 때문에, 해당 모듈이 꺼져 있는 서버에서도
+#  500 오류가 나지 않고 조용히 무시됩니다.
+# ============================================================================
+
+DirectoryIndex index.html
+
+# 폴더 목록 노출 막기 — 기본적으로 꺼 두었습니다.
+#
+# 호스팅사가 AllowOverride에서 Options를 허용하지 않으면 이 한 줄 때문에
+# "Internal Server Error(500)"로 사이트 전체가 뜨지 않습니다. 그래서 안전하게
+# 주석 처리해 두었습니다.
+#
+# 켜 보고 싶다면 아래 줄의 # 을 지우고 접속해 보세요.
+# 정상이면 그대로 두고, 500 오류가 나면 다시 # 을 붙이면 됩니다.
+#
+# Options -Indexes
+
+
+# ---------------------------------------------------------------------------
+#  1. MIME 타입
+#     .webp가 등록되어 있지 않으면 페이지 이미지가 통째로 안 보인다.
+#     (이북이 빈 화면으로 나오는 가장 흔한 원인)
+# ---------------------------------------------------------------------------
+<IfModule mod_mime.c>
+  AddType image/webp                 .webp
+  AddType image/png                  .png
+  AddType application/json           .json
+  AddType text/javascript            .js
+  AddType text/css                   .css
+  AddType application/pdf            .pdf
+  AddType font/woff2                 .woff2
+
+  AddCharset UTF-8 .html .js .css .json
+</IfModule>
+
+
+# ---------------------------------------------------------------------------
+#  2. 압축
+#     이미지는 이미 압축되어 있으므로 제외하고, 텍스트 계열만 압축한다.
+#     search.json(약 1MB)이 크게 줄어 검색 패널이 훨씬 빨리 열린다.
+# ---------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript
+  AddOutputFilterByType DEFLATE application/javascript application/json
+</IfModule>
+
+
+# ---------------------------------------------------------------------------
+#  3. 캐시
+#     페이지 이미지는 한 번 올리면 절대 바뀌지 않으므로 길게 잡는다.
+#     반대로 html/json은 짧게 잡아야 다음 호로 교체했을 때 바로 반영된다.
+# ---------------------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # 페이지 이미지 · 폰트 — 1년
+  ExpiresByType image/webp           "access plus 1 year"
+  ExpiresByType image/jpeg           "access plus 1 year"
+  ExpiresByType image/png            "access plus 1 year"
+  ExpiresByType font/woff2           "access plus 1 year"
+
+  # 뷰어 코드 — 1일
+  ExpiresByType text/css             "access plus 1 day"
+  ExpiresByType text/javascript      "access plus 1 day"
+  ExpiresByType application/javascript "access plus 1 day"
+
+  # 설정·색인 — 5분 (교체 시 빠르게 반영)
+  ExpiresByType application/json     "access plus 5 minutes"
+  ExpiresByType text/html            "access plus 5 minutes"
+</IfModule>
+
+<IfModule mod_headers.c>
+  # 이미지에 immutable을 붙이면 브라우저가 재검증 요청조차 보내지 않는다
+  <FilesMatch "\.(webp|jpg|jpeg|png|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  <FilesMatch "\.(json|html)$">
+    Header set Cache-Control "public, max-age=300, must-revalidate"
+  </FilesMatch>
+
+  # 다른 사이트에서 iframe으로 퍼가는 것을 막고 싶다면 아래 주석을 해제하세요.
+  # (사보를 외부 사이트에 임베드해서 쓸 계획이면 그대로 두세요)
+  # Header set X-Frame-Options "SAMEORIGIN"
+
+  Header set X-Content-Type-Options "nosniff"
+</IfModule>
