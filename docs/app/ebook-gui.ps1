@@ -136,6 +136,13 @@ $form.BackColor       = [System.Drawing.Color]::White
 $form.Font            = New-Object System.Drawing.Font('맑은 고딕', 11)
 $form.AllowDrop       = $true
 
+# 창 왼쪽 위와 작업표시줄에 붙는 아이콘.
+# 지정하지 않으면 PowerShell 아이콘이 그대로 나와 남의 프로그램처럼 보인다.
+$icoPath = Join-Path $root 'icon.ico'
+if (Test-Path -LiteralPath $icoPath) {
+    try { $form.Icon = New-Object System.Drawing.Icon($icoPath) } catch {}
+}
+
 $fontTitle = New-Object System.Drawing.Font('맑은 고딕', 18, [System.Drawing.FontStyle]::Bold)
 $fontStep  = New-Object System.Drawing.Font('맑은 고딕', 11, [System.Drawing.FontStyle]::Bold)
 $fontHint  = New-Object System.Drawing.Font('맑은 고딕', 9)
