@@ -63,6 +63,27 @@ function Get-OutRoot([string]$appDir) {
     return (Join-Path ([Environment]::GetFolderPath('MyDocuments')) '이북출력')
 }
 
+<#
+  화면에서 고른 결과 폴더를 settings.json에 적어 둔다.
+
+  이 파일은 릴리스 목록(version.json)에 들어 있지 않으므로 자동 업데이트가
+  건드리지 않는다. 그래서 한 번 정해 두면 프로그램을 새로 받아도 그대로 유지된다.
+  이 컴퓨터에만 저장되므로, 다른 사람 컴퓨터는 영향을 받지 않는다.
+#>
+function Save-OutRoot([string]$appDir, [string]$dir) {
+    $cfg = Join-Path $appDir 'settings.json'
+    $obj = [ordered]@{}
+    if (Test-Path -LiteralPath $cfg) {
+        try {
+            $ex = Get-Content -LiteralPath $cfg -Raw -Encoding UTF8 | ConvertFrom-Json
+            foreach ($p in $ex.PSObject.Properties) { $obj[$p.Name] = $p.Value }
+        } catch {}
+    }
+    $obj['outRoot'] = $dir
+    # BOM 없이 UTF-8로. (Get-OutRoot가 UTF8로 읽으므로 한글 경로도 안전)
+    [IO.File]::WriteAllText($cfg, ($obj | ConvertTo-Json), (New-Object Text.UTF8Encoding($false)))
+}
+
 $outRoot = Get-OutRoot $root
 # '결과 폴더 열기' 버튼이 없는 폴더를 여는 일이 없도록 미리 만들어 둔다
 if (-not (Test-Path -LiteralPath $outRoot)) {
@@ -141,7 +162,7 @@ function New-Slug([string]$pdfPath) {
 
 $form                 = New-Object System.Windows.Forms.Form
 $form.Text            = 'PDF → 웹 이북 만들기'
-$form.ClientSize      = New-Object System.Drawing.Size(660, 744)
+$form.ClientSize      = New-Object System.Drawing.Size(660, 792)
 $form.StartPosition   = 'CenterScreen'
 $form.FormBorderStyle = 'FixedSingle'
 $form.MaximizeBox     = $false
@@ -176,6 +197,35 @@ function New-Label($text, $x, $y, $w, $h, $font, $color) {
 
 $null = New-Label 'PDF → 웹 이북 만들기' 32 24 500 40 $fontTitle $null
 $null = New-Label 'PDF 파일을 고르고 아래 큰 버튼을 누르면 됩니다.' 34 64 560 24 $fontHint $gray
+
+# 결과 폴더를 지정하는 버튼. '이북 만들기' 버튼 바로 위에 놓인다(위치는 아래 좌표로 정함).
+# 지금 폴더는 마우스를 올리면 말풍선으로 보이고, 고른 폴더는 settings.json에
+# 저장되어 다음에 켤 때도 그대로 유지된다.
+$btnOut = New-Object System.Windows.Forms.Button
+$btnOut.Text = '결과 폴더 지정하기'
+$btnOut.Location = New-Object System.Drawing.Point(32, 606)
+$btnOut.Size = New-Object System.Drawing.Size(596, 40)
+$form.Controls.Add($btnOut)
+
+$tipOut = New-Object System.Windows.Forms.ToolTip
+$tipOut.InitialDelay = 300
+$tipOut.AutoPopDelay = 30000
+$tipOut.SetToolTip($btnOut, "지금 결과 폴더:`r`n$outRoot")
+
+$btnOut.Add_Click({
+    $d = New-Object System.Windows.Forms.FolderBrowserDialog
+    $d.Description = '완성된 이북(ZIP·폴더)을 저장할 위치를 고르세요'
+    if (Test-Path -LiteralPath $outRoot) { $d.SelectedPath = $outRoot }
+    if ($d.ShowDialog() -eq 'OK') {
+        $script:outRoot = $d.SelectedPath
+        if (-not (Test-Path -LiteralPath $script:outRoot)) {
+            New-Item -ItemType Directory -Path $script:outRoot -Force | Out-Null
+        }
+        Save-OutRoot $root $script:outRoot
+        $tipOut.SetToolTip($btnOut, "지금 결과 폴더:`r`n$($script:outRoot)")
+        Say "결과 폴더를 지정했습니다. 다음에 켤 때도 유지됩니다.`r`n$($script:outRoot)"
+    }
+})
 
 # ① PDF
 $null = New-Label '① 변환할 PDF 파일' 32 106 300 24 $fontStep $null
@@ -291,7 +341,7 @@ $chkSplit.Add_CheckedChanged({
 # 실행 버튼
 $btnGo = New-Object System.Windows.Forms.Button
 $btnGo.Text = '이북 만들기'
-$btnGo.Location = New-Object System.Drawing.Point(32, 610)
+$btnGo.Location = New-Object System.Drawing.Point(32, 658)
 $btnGo.Size = New-Object System.Drawing.Size(596, 56)
 $btnGo.Font = $fontBig
 $btnGo.BackColor = $accent
@@ -301,31 +351,31 @@ $btnGo.FlatAppearance.BorderSize = 0
 $form.Controls.Add($btnGo)
 
 $bar = New-Object System.Windows.Forms.ProgressBar
-$bar.Location = New-Object System.Drawing.Point(32, 610)
+$bar.Location = New-Object System.Drawing.Point(32, 658)
 $bar.Size = New-Object System.Drawing.Size(596, 22)
 $bar.Visible = $false
 $form.Controls.Add($bar)
 
-$lblStatus = New-Label '' 32 638 596 46 $null $gray
+$lblStatus = New-Label '' 32 686 596 46 $null $gray
 
 # 완료 뒤 버튼들
 $btnOpen = New-Object System.Windows.Forms.Button
 $btnOpen.Text = '결과 폴더 열기'
-$btnOpen.Location = New-Object System.Drawing.Point(32, 688)
+$btnOpen.Location = New-Object System.Drawing.Point(32, 736)
 $btnOpen.Size = New-Object System.Drawing.Size(190, 40)
 $btnOpen.Visible = $false
 $form.Controls.Add($btnOpen)
 
 $btnView = New-Object System.Windows.Forms.Button
 $btnView.Text = '미리 보기'
-$btnView.Location = New-Object System.Drawing.Point(235, 688)
+$btnView.Location = New-Object System.Drawing.Point(235, 736)
 $btnView.Size = New-Object System.Drawing.Size(190, 40)
 $btnView.Visible = $false
 $form.Controls.Add($btnView)
 
 $btnAgain = New-Object System.Windows.Forms.Button
 $btnAgain.Text = '다른 PDF 변환'
-$btnAgain.Location = New-Object System.Drawing.Point(438, 688)
+$btnAgain.Location = New-Object System.Drawing.Point(438, 736)
 $btnAgain.Size = New-Object System.Drawing.Size(190, 40)
 $btnAgain.Visible = $false
 $form.Controls.Add($btnAgain)
@@ -369,6 +419,7 @@ $form.Add_DragDrop({
 
 function Set-Busy([bool]$busy) {
     $btnPick.Enabled  = -not $busy
+    $btnOut.Enabled   = -not $busy
     $chkSplit.Enabled = -not $busy
     $cboCols.Enabled  = (-not $busy) -and $chkSplit.Checked
     $txtOrder.Enabled = (-not $busy) -and $chkSplit.Checked
@@ -426,7 +477,7 @@ $timer.Add_Tick({
             if (Test-Path -LiteralPath $zip) {
                 $size = '{0:N0} MB' -f ((Get-Item -LiteralPath $zip).Length / 1MB)
             }
-            Say "완성되었습니다.   $pages$size`r`n퍼블리셔에게는 ebook-out 폴더의 ZIP 파일 하나만 보내면 됩니다."
+            Say "완성되었습니다.   $pages$size`r`n퍼블리셔에게는 결과 폴더의 ZIP 파일 하나만 보내면 됩니다."
             $btnOpen.Visible = $true
             $btnView.Visible = $true
             $btnAgain.Visible = $true
