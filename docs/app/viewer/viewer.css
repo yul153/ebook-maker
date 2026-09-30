@@ -139,11 +139,13 @@ html, body {
    scale로 키우면 브라우저가 100% 시점에 떠 둔 래스터를 GPU로 늘려 버려서,
    아무리 높은 해상도 이미지를 물려도 글자가 흐릿하게 나온다.
    크기가 커지면 화면보다 넓어지므로 격자 중앙정렬을 쓸 수 없다.
-   (넘치는 항목은 중앙이 아니라 시작점에 붙는다) 직접 중앙에 놓는다. */
+   (넘치는 항목은 중앙이 아니라 시작점에 붙는다) 직접 중앙에 놓는다.
+   위치는 applyTransform()이 기기 픽셀 단위로 맞춰 transform에 넣는다. */
 #book {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  left: 0;
+  top: 0;
+  place-self: start;   /* #viewport의 place-items: center가 절대배치에도 먹는다 */
   transform-style: flat;
   transition: transform var(--flip-ms) cubic-bezier(.24, .78, .3, 1);
   will-change: transform;

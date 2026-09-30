@@ -148,10 +148,16 @@ function applyTransform(instant, idx = cur) {
   // 레이아웃이 아직 따라오지 못한 만큼만 transform으로 메운다. 확대가 멎으면
   // commitZoom()이 이 값을 1로 되돌리고, 그 순간부터 등배로 그려진다.
   const k = scale / rasterScale;
+  // 책은 기기 픽셀 경계에 딱 맞춰 놓는다. translate(-50%)로 가운데 정렬하면
+  // 책이나 화면 크기가 홀수일 때 0.5px 어긋나고, will-change 레이어는 그걸
+  // 통째로 반 칸씩 섞어 그려서 100%에서도 글자가 20%쯤 흐려진다(실측).
+  const dpr = window.devicePixelRatio || 1;
+  const snap = (v) => Math.round(v * dpr) / dpr;
+  const bw = laidW() * (onePage ? 1 : 2), bh = laidH();
+  const tx = snap((viewport.clientWidth  - bw) / 2 + panX + centerOffset(idx) * k);
+  const ty = snap((viewport.clientHeight - bh) / 2 + panY);
   book.classList.toggle("no-anim", !!instant);
-  book.style.transform =
-    `translate(-50%, -50%) translate(${panX}px, ${panY}px) ` +
-    `scale(${k}) translateX(${centerOffset(idx)}px)`;
+  book.style.transform = `translate(${tx}px, ${ty}px) scale(${k})`;
   if (instant) book.offsetHeight;   // 리플로우로 transition 건너뛰기
 }
 
@@ -955,6 +961,8 @@ function bindEvents() {
     const w = viewport.clientWidth, h = viewport.clientHeight;
     if (!w || !h || (w === lastW && h === lastH)) return;
     lastW = w; lastH = h;
+    // 크기 재계산은 손이 멎은 뒤에 하되, 가운데 자리는 바로 따라가게 한다
+    if (!animating) applyTransform(true);
     clearTimeout(rt);
     rt = setTimeout(() => { layout(); render(true); }, 100);
   };

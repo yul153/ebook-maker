@@ -1,12 +1,12 @@
 {
-    "version":  "2026.08.20-16",
-    "note":  "미리보기 서버를 내 PC에서만 열리게 제한 (사내망 노출 차단)",
+    "version":  "2026.09.30-1",
+    "note":  "뷰어: 책을 픽셀 경계에 맞춰 배치 (100%에서 반 픽셀 번짐 제거)",
     "files":  [
                   {
                       "path":  "ebook-gui.ps1",
                       "url":  "ebook-gui.ps1",
-                      "sha256":  "d862499f446ff0a06472a3620cb30c7d0c145ca092be8207df506791549d9cee",
-                      "bytes":  26375
+                      "sha256":  "b229f763f8464c60e5fdcaea351ae77b16cc2b9b1d740f05ad24c6097f9c224d",
+                      "bytes":  28799
                   },
                   {
                       "path":  "icon.ico",
@@ -89,14 +89,14 @@
                   {
                       "path":  "viewer/viewer.css",
                       "url":  "viewer/viewer.css",
-                      "sha256":  "fd05367873a4f9d8142e0f5a1ed615e2f28c68488fae1c549f1da8441c7e25d5",
-                      "bytes":  16360
+                      "sha256":  "ebc997e797c2c87a8a7a3ad1e4728fa3ef0cc6bc0b6e0672b69705d2bb0a82f6",
+                      "bytes":  16538
                   },
                   {
                       "path":  "viewer/viewer.js",
                       "url":  "viewer/viewer.js",
-                      "sha256":  "3e4ac931181e520204d2ddca12ef165fb4978c1610ac25ae1a4be78142be7684",
-                      "bytes":  37214
+                      "sha256":  "cf000e99202e2c7a1878d0d04699d9551a255b4365849366ba626172b557e8f1",
+                      "bytes":  37872
                   },
                   {
                       "path":  "viewer/web.config",
